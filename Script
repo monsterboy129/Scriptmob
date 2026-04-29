@@ -1,0 +1,169 @@
+--[[
+    COYOTE HUB - VOLLEYBALL LEGENDS
+    Abre com a tecla F5
+]]
+
+print("════════════════════════════════")
+print("   COYOTE HUB - Carregando...")
+print("   Pressione F5 para abrir o menu")
+print("════════════════════════════════")
+
+-- VARIÁVEIS
+local Players = game:GetService("Players")
+local LP = Players.LocalPlayer
+local UserInput = game:GetService("UserInputService")
+
+local autoSpike = false
+local autoReceive = false
+local autoJump = false
+local hitboxEnabled = false
+local hitboxSize = 15
+local menuAberto = false
+
+-- FUNÇÃO PARA CRIAR MENU SIMPLES (UI de texto)
+local function criarMenu()
+    -- Cria uma tela GUI simples
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "CoyoteMenu"
+    screenGui.ResetOnSpawn = false
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 200)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 0
+    frame.Visible = false
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Text = "COYOTE HUB"
+    title.TextColor3 = Color3.fromRGB(255, 200, 0)
+    title.BackgroundTransparency = 1
+    title.Parent = frame
+    
+    local spikeBtn = Instance.new("TextButton")
+    spikeBtn.Size = UDim2.new(0.9, 0, 0, 30)
+    spikeBtn.Position = UDim2.new(0.05, 0, 0.2, 0)
+    spikeBtn.Text = "Auto Spike: OFF"
+    spikeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    spikeBtn.Parent = frame
+    
+    local receiveBtn = Instance.new("TextButton")
+    receiveBtn.Size = UDim2.new(0.9, 0, 0, 30)
+    receiveBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
+    receiveBtn.Text = "Auto Receive: OFF"
+    receiveBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    receiveBtn.Parent = frame
+    
+    local jumpBtn = Instance.new("TextButton")
+    jumpBtn.Size = UDim2.new(0.9, 0, 0, 30)
+    jumpBtn.Position = UDim2.new(0.05, 0, 0.5, 0)
+    jumpBtn.Text = "Auto Jump: OFF"
+    jumpBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    jumpBtn.Parent = frame
+    
+    local hitboxBtn = Instance.new("TextButton")
+    hitboxBtn.Size = UDim2.new(0.9, 0, 0, 30)
+    hitboxBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+    hitboxBtn.Text = "Hitbox: OFF (" .. hitboxSize .. ")"
+    hitboxBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    hitboxBtn.Parent = frame
+    
+    local closeBtn = Instance.new("TextButton")
+    closeBtn.Size = UDim2.new(0.3, 0, 0, 25)
+    closeBtn.Position = UDim2.new(0.35, 0, 0.85, 0)
+    closeBtn.Text = "FECHAR"
+    closeBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 50)
+    closeBtn.Parent = frame
+    
+    -- AÇÕES DOS BOTÕES
+    spikeBtn.MouseButton1Click:Connect(function()
+        autoSpike = not autoSpike
+        spikeBtn.Text = "Auto Spike: " .. (autoSpike and "ON" or "OFF")
+        spikeBtn.BackgroundColor3 = autoSpike and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+    end)
+    
+    receiveBtn.MouseButton1Click:Connect(function()
+        autoReceive = not autoReceive
+        receiveBtn.Text = "Auto Receive: " .. (autoReceive and "ON" or "OFF")
+        receiveBtn.BackgroundColor3 = autoReceive and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+    end)
+    
+    jumpBtn.MouseButton1Click:Connect(function()
+        autoJump = not autoJump
+        jumpBtn.Text = "Auto Jump: " .. (autoJump and "ON" or "OFF")
+        jumpBtn.BackgroundColor3 = autoJump and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+    end)
+    
+    hitboxBtn.MouseButton1Click:Connect(function()
+        hitboxEnabled = not hitboxEnabled
+        hitboxBtn.Text = "Hitbox: " .. (hitboxEnabled and "ON (" .. hitboxSize .. ")" or "OFF")
+        hitboxBtn.BackgroundColor3 = hitboxEnabled and Color3.fromRGB(0, 150, 0) or Color3.fromRGB(50, 50, 50)
+    end)
+    
+    closeBtn.MouseButton1Click:Connect(function()
+        frame.Visible = false
+        menuAberto = false
+    end)
+    
+    frame.Parent = screenGui
+    screenGui.Parent = game:GetService("CoreGui")
+    
+    return frame
+end
+
+-- CRIA O MENU
+local menuFrame = criarMenu()
+
+-- ABRE/FECHA COM A TECLA F5
+UserInput.InputBegan:Connect(function(input, isProcessed)
+    if not isProcessed and input.KeyCode == Enum.KeyCode.F5 then
+        menuAberto = not menuAberto
+        menuFrame.Visible = menuAberto
+    end
+end)
+
+-- NOTIFICAÇÃO
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Coyote Hub",
+    Text = "Pressione F5 para abrir o menu!",
+    Duration = 5
+})
+
+-- LOOP PRINCIPAL
+spawn(function()
+    while true do
+        wait(0.1)
+        pcall(function()
+            local char = LP.Character
+            if not char then return end
+            
+            -- Auto Spike
+            if autoSpike then
+                local ball = workspace:FindFirstChild("Ball")
+                if ball then
+                    local remote = game:GetService("ReplicatedStorage"):FindFirstChild("Spike")
+                    if remote then remote:FireServer(ball) end
+                end
+            end
+            
+            -- Auto Jump
+            if autoJump then
+                local humanoid = char:FindFirstChild("Humanoid")
+                if humanoid and humanoid.FloorMaterial ~= Enum.Material.Air then
+                    humanoid.Jump = true
+                end
+            end
+            
+            -- Hitbox
+            if hitboxEnabled and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
+            end
+        end)
+    end
+end)
+
+print("════════════════════════════════")
+print("   ✅ SCRIPT CARREGADO!")
+print("   ✅ Pressione F5 para abrir o menu")
+print("════════════════════════════════")
